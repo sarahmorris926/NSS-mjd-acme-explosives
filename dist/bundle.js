@@ -51,7 +51,8 @@ module.exports.getTypes = () => {
 
 
 
-},{"jquery":4}],2:[function(require,module,exports){
+
+},{"jquery":5}],2:[function(require,module,exports){
 'use strict';
 
 // Format the data 
@@ -60,22 +61,32 @@ module.exports.formatData = (data) => {
   console.log("our data", data);
   // Untangle the array of arrays and make the data ready to present to the user
   
+  const products = data[2];
+  const types = data[1];
+  const cats = data[0];
 
   // Mutate the products array:
   //  add "category" key to each item
   //  change "type" value from integer to string value, ie "fragmentation" 
 
-  let revisedProds = data[2].map( (prod) => {
-    for (let prop in prod) {
-      prod[prop].category = "new thing";
-      prod[prop].type = "blowy up thing";
-    }
+  let revisedProds = products.map(prod => {
+    let currentProd = Object.keys(prod)[0];
+    console.log(currentProd);
+    let prodType = types.find(type => type.id === prod[currentProd].type);
+    console.log('prodType', prodType);
+    let prodCat = cats.find(category => category.id === prodType.category);
+
+    prod[currentProd].type = prodType.name;
+    prod[currentProd].category = prodCat.name;
 
 
     return prod;
   });
   console.log('revised', revisedProds);
+  return revisedProds;
 };
+
+
 },{}],3:[function(require,module,exports){
 'use strict';
 
@@ -93,6 +104,7 @@ console.log("Acme Explosives");
 const $ = require('jquery');
 const factory = require('./factory');
 const formatter = require('./formatter');
+const prodView = require('./prodView');
 
 const acmeData = [];
 
@@ -124,14 +136,32 @@ let promArr = [
 ];
 Promise.all(promArr)
 .then( (dataArr) => {
-  formatter.formatData(dataArr);
+  let revisedProds = formatter.formatData(dataArr);
+  prodView.displayProducts(revisedProds);
 })
 .catch( (err) => {
   console.log(err);
 });
 
 
-},{"./factory":1,"./formatter":2,"jquery":4}],4:[function(require,module,exports){
+},{"./factory":1,"./formatter":2,"./prodView":4,"jquery":5}],4:[function(require,module,exports){
+'use strict';
+
+const $ = require('jquery');
+
+module.exports.displayProducts = (products) => {
+  products.forEach( (prod) => {
+    let prodKey = Object.keys(prod)[0];
+    let currentProd = prod[prodKey];
+    let productString = `
+      <h4>${currentProd.name}</h4>
+      <h5>Category: ${currentProd.category} Type: ${currentProd.type}</h5>
+      <p>${currentProd.description}</p>
+    `;
+    $("#products").append(productString);
+  });
+};
+},{"jquery":5}],5:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v3.2.1
  * https://jquery.com/
